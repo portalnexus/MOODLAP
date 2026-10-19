@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MOODLAP — Micro-momentos & Humor Diário</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              950: '#070B19',
+              900: '#0B1124',
+              800: '#131C38',
+              700: '#1E294B',
+            },
+            brand: {
+              400: '#A78BFA',
+              500: '#8B5CF6',
+              600: '#7C3AED',
+              glow: 'rgba(139, 92, 246, 0.25)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #070B19;
+      color: #F8FAFC;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(19, 28, 56, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(167, 139, 250, 0.14);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #070B19;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1E294B;
+      border-radius: 9999px;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.92); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    .animate-pop {
+      animation: pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-brand-500 selection:text-white pb-20 lg:pb-10">
+
+  <!-- Ambient Glows -->
+  <div class="fixed top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-brand-600/15 blur-[130px] pointer-events-none z-0"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-indigo-600/15 blur-[130px] pointer-events-none z-0"></div>
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-purple-200 to-brand-400 bg-clip-text text-transparent">MOODLAP</span>
+          <span class="hidden sm:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">MVP Beta</span>
+        </div>
+      </div>
+
+      <!-- Filter Pills (Desktop) -->
+      <div class="hidden md:flex items-center gap-1.5 bg-navy-900/90 p-1.5 rounded-2xl border border-white/5" id="desktop-mood-filters">
+        <!-- Populated via JS -->
+      </div>
+
+      <!-- Demo Account Switcher & Quick Action -->
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <button onclick="toggleAccountDropdown()" class="flex items-center gap-2.5 bg-navy-800/90 hover:bg-navy-700/80 transition px-3 py-1.5 rounded-2xl border border-white/10 text-left">
+            <img id="header-user-avatar" src="" alt="Avatar" class="w-7 h-7 rounded-full object-cover ring-2 ring-brand-500/50" />
+            <div class="hidden sm:block">
+              <p class="text-[10px] text-slate-400 leading-none">Logado como</p>
+              <p id="header-user-name" class="text-xs font-bold text-white leading-tight mt-0.5"></p>
+            </div>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+          </button>
+
+          <!-- Dropdown Menu para Trocar Conta na Demo -->
+          <div id="account-dropdown" class="hidden absolute right-0 mt-2 w-64 glass-panel rounded-2xl shadow-2xl border border-white/15 py-2 z-50">
+            <div class="px-3 py-1.5 border-b border-white/10">
+              <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Alternar Conta (Demo)</p>
+            </div>
+            <div id="account-switcher-list" class="divide-y divide-white/5">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout Grid -->
+  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Sidebar: User Profile & Current Mood -->
+    <aside class="lg:col-span-4 xl:col-span-3 space-y-6">
+      <!-- Active User Profile Card -->
+      <div class="glass-panel rounded-3xl p-5 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-brand-600/30 via-indigo-600/20 to-purple-900/30"></div>
+        
+        <div class="relative pt-6 flex flex-col items-start">
+          <div class="relative">
+            <img id="profile-avatar" src="" alt="Foto do Perfil" class="w-20 h-20 rounded-2xl object-cover border-4 border-navy-900 shadow-lg" />
+            <span id="profile-mood-badge" class="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full text-xs font-bold shadow-md border border-white/10 flex items-center gap-1"></span>
+          </div>
+
+          <div class="mt-4 w-full">
+            <div class="flex items-center justify-between">
+              <h1 id="profile-name" class="text-lg font-bold text-white"></h1>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-lg bg-white/5 text-slate-300 border border-white/10">Pro Member</span>
+            </div>
+            <p id="profile-handle" class="text-sm text-brand-400 font-medium"></p>
+            <p id="profile-bio" class="text-xs text-slate-300 mt-2.5 leading-relaxed"></p>
+          </div>
+
+          <!-- User Metrics -->
+          <div class="grid grid-cols-3 gap-2 w-full mt-5 pt-4 border-t border-white/10 text-center">
+            <div class="bg-navy-900/60 rounded-2xl py-2 px-1">
+              <span id="profile-laps-count" class="block text-base font-extrabold text-white">0</span>
+              <span class="text-[11px] text-slate-400">LAPs</span>
+            </div>
+            <div class="bg-navy-900/60 rounded-2xl py-2 px-1">
+              <span id="profile-streak" class="block text-base font-extrabold text-brand-400">14d 🔥</span>
+              <span class="text-[11px] text-slate-400">Ofensiva</span>
+            </div>
+            <div class="bg-navy-900/60 rounded-2xl py-2 px-1">
+              <span id="profile-vibes" class="block text-base font-extrabold text-white">284</span>
+              <span class="text-[11px] text-slate-400">Vibes</span>
+            </div>
+          </div>
+
+          <!-- Quick Mood Selector -->
+          <div class="w-full mt-5 pt-4 border-t border-white/10">
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Como você está agora?</span>
+              <span class="text-[11px] text-slate-400">Atualiza o status</span>
+            </div>
+            <div id="user-mood-selector" class="grid grid-cols-2 gap-2">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Mood Pulse (Desktop & Mobile) -->
+      <div class="glass-panel rounded-3xl p-5 shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="activity" class="w-4 h-4 text-brand-400"></i>
+            Pulso Emocional do Feed
+          </h2>
+          <span class="text-[11px] text-slate-400">Tempo real</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">Distribuição dos humores registrados nos LAPs de hoje.</p>
+        <div id="mood-pulse-bars" class="space-y-3">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Column: Create LAP & Feed -->
+    <section class="lg:col-span-8 xl:col-span-6 space-y-6">
+      
+      <!-- Mobile Mood Filter Scroll -->
+      <div class="flex md:hidden items-center gap-2 overflow-x-auto pb-2 custom-scrollbar" id="mobile-mood-filters">
+        <!-- Populated via JS -->
+      </div>
+
+      <!-- Composer Card: Create a new LAP -->
+      <div class="glass-panel rounded-3xl p-5 shadow-xl border border-brand-500/20">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="camera" class="w-4 h-4 text-brand-400"></i>
+            Registrar novo LAP
+          </h2>
+          <span class="text-[11px] text-slate-400">Micro-momento do dia</span>
+        </div>
+
+        <form id="create-lap-form" onsubmit="handleCreateLap(event)" class="space-y-4">
+          <div class="flex gap-3">
+            <img id="composer-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-xl object-cover hidden sm:block mt-1" />
+            <div class="flex-1">
+              <textarea
+                id="lap-caption"
+                rows="3"
+                required
+                placeholder="Qual micro-momento define seu humor agora?"
+                class="w-full bg-navy-900/90 text-sm text-white placeholder-slate-400 rounded-2xl p-3.5 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition resize-none"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Mood Selection for Post -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Selecione a vibe deste LAP:</label>
+            <div id="composer-mood-options" class="flex flex-wrap gap-2">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Simulated Image Upload / Presets -->
+          <div class="bg-navy-900/70 rounded-2xl p-3.5 border border-white/5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <i data-lucide="image" class="w-4 h-4 text-brand-400"></i>
+                Fotografia do Momento
+              </span>
+              <div class="flex items-center gap-2">
+                <label for="lap-file-input" class="cursor-pointer text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-200 px-3 py-1.5 rounded-xl border border-white/10 transition flex items-center gap-1.5">
+                  <i data-lucide="upload" class="w-3.5 h-3.5 text-brand-400"></i>
+                  Carregar Arquivo
+                </label>
+                <input id="lap-file-input" type="file" accept="image/*" class="hidden" onchange="handleFileUpload(event)" />
+              </div>
+            </div>
+
+            <!-- Preset Unsplash Photos for Fast Executive Demo -->
+            <div>
+              <p class="text-[11px] text-slate-400 mb-2">Ou escolha uma cena rápida do banco para simulação:</p>
+              <div id="preset-images-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
+            <!-- Image Preview Box -->
+            <div id="composer-image-preview-wrapper" class="relative rounded-2xl overflow-hidden border border-white/10 h-44 bg-navy-950">
+              <img id="composer-image-preview" src="" alt="Preview" class="w-full h-full object-cover" />
+              <div class="absolute bottom-2 left-2 bg-navy-950/80 backdrop-blur-md px-2.5 py-1 rounded-lg text-[11px] text-slate-300 border border-white/10">
+                Preview do LAP
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-xs text-slate-400 flex items-center gap-1">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              Ambiente seguro e acolhedor
+            </span>
+            <button
+              type="submit"
+              class="bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-2xl shadow-lg shadow-brand-600/30 transition transform active:scale-95 flex items-center gap-2"
+            >
+              <i data-lucide="send" class="w-4 h-4"></i>
+              Publicar LAP
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Feed Header & Sorting -->
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-bold text-white">Feed de LAPs</h2>
+          <span id="feed-counter-badge" class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 font-semibold"></span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+          <span>Exibindo:</span>
+          <strong id="active-filter-label" class="text-white">Todos os humores</strong>
+        </div>
+      </div>
+
+      <!-- LAPs Feed Container -->
+      <div id="laps-feed" class="space-y-6">
+        <!-- Populated via JS -->
+      </div>
+
+    </section>
+
+    <!-- Right Sidebar: Accounts Directory & Product Context -->
+    <aside class="hidden xl:block xl:col-span-3 space-y-6">
+      <div class="glass-panel rounded-3xl p-5 shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4 text-brand-400"></i>
+            Comunidade Ativa
+          </h2>
+          <span class="text-[11px] text-brand-400 font-medium">Clique p/ assumir</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">Alterne rapidamente entre perfis para testar a interatividade do MVP.</p>
+        <div id="sidebar-accounts-list" class="space-y-3">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- Guidelines / Manifesto Card -->
+      <div class="glass-panel rounded-3xl p-5 shadow-xl border border-indigo-500/20 bg-gradient-to-b from-navy-800/80 to-navy-900/90">
+        <div class="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center mb-3">
+          <i data-lucide="heart-handshake" class="w-5 h-5 text-brand-400"></i>
+        </div>
+        <h3 class="text-sm font-bold text-white">Por que o MOODLAP?</h3>
+        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+          Redes tradicionais premiam apenas vidas perfeitas. No <strong>MOODLAP</strong>, tanto um dia radiante quanto uma tarde exausta têm espaço legítimo.
+        </p>
+        <ul class="mt-3 space-y-2 text-xs text-slate-400">
+          <li class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span>
+            Registro emocional autêntico
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span>
+            Validação empática com Likes & Dislikes
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span>
+            Moderação ativa de conteúdo
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Report Modal (Denúncia de Conteúdo) -->
+  <div id="report-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-navy-950/80 backdrop-blur-md">
+    <div class="glass-panel rounded-3xl max-w-md w-full p-6 border border-white/15 shadow-2xl animate-pop">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <i data-lucide="flag" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Reportar LAP</h3>
+            <p class="text-xs text-slate-400">Ajude a manter a comunidade saudável</p>
+          </div>
+        </div>
+        <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="report-form" onsubmit="submitReport(event)" class="mt-5 space-y-3">
+        <input type="hidden" id="report-lap-id" />
+        <p class="text-xs text-slate-300 font-medium">Qual é o motivo da denúncia deste conteúdo?</p>
+        
+        <label class="flex items-center gap-3 p-3 rounded-2xl bg-navy-900/80 border border-white/10 cursor-pointer hover:border-brand-500/50 transition">
+          <input type="radio" name="report_reason" value="Conteúdo ofensivo ou discurso de ódio" required class="accent-purple-500" />
+          <span class="text-xs text-slate-200">Conteúdo ofensivo, assédio ou hostilidade</span>
+        </label>
+
+        <label class="flex items-center gap-3 p-3 rounded-2xl bg-navy-900/80 border border-white/10 cursor-pointer hover:border-brand-500/50 transition">
+          <input type="radio" name="report_reason" value="Spam ou autopromoção enganosa" class="accent-purple-500" />
+          <span class="text-xs text-slate-200">Spam, bot ou imagem fora de contexto</span>
+        </label>
+
+        <label class="flex items-center gap-3 p-3 rounded-2xl bg-navy-900/80 border border-white/10 cursor-pointer hover:border-brand-500/50 transition">
+          <input type="radio" name="report_reason" value="Gatilho emocional sensível sem aviso" class="accent-purple-500" />
+          <span class="text-xs text-slate-200">Gatilho emocional sensível sem alerta</span>
+        </label>
+
+        <div class="pt-3 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeReportModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/5 transition">
+            Cancelar
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            Enviar Denúncia
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Application Logic -->
+  <script>
+    /**************************************************************
+     * 1. DESIGN SYSTEM DE HUMORES (MOODS)
+     **************************************************************/
+    const MOODS = {
+      radiante: {
+        id: 'radiante',
+        label: 'Radiante',
+        emoji: '✨',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        barColor: 'bg-amber-400'
+      },
+      focado: {
+        id: 'focado',
+        label: 'Produtivo',
+        emoji: '🚀',
+        badgeClass: 'bg-purple-500/25 text-purple-300 border-purple-500/40',
+        barColor: 'bg-purple-500'
+      },
+      calmo: {
+        id: 'calmo',
+        label: 'Calmo',
+        emoji: '🌿',
+        badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        barColor: 'bg-emerald-400'
+      },
+      ansioso: {
+        id: 'ansioso',
+        label: 'Ansioso',
+        emoji: '⚡',
+        badgeClass: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+        barColor: 'bg-orange-400'
+      },
+      exausto: {
+        id: 'exausto',
+        label: 'Exausto',
+        emoji: '🌧️',
+        badgeClass: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+        barColor: 'bg-sky-400'
+      },
+      caotico: {
+        id: 'caotico',
+        label: 'Caótico',
+        emoji: '🌪️',
+        badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+        barColor: 'bg-rose-500'
+      }
+    };
+
+    /**************************************************************
+     * 2. BANCO DE IMAGENS RÁPIDAS (UNSPLASH) PARA O COMPOSER
+     **************************************************************/
+    const PRESET_IMAGES = [
+      {
+        label: 'Café & Foco',
+        url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=900&q=80'
+      },
+      {
+        label: 'Noite Chuvosa',
+        url: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=900&q=80'
+      },
+      {
+        label: 'Pôr do Sol',
+        url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80'
+      },
+      {
+        label: 'Mesa Caótica',
+        url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80'
+      },
+      {
+        label: 'Natureza Zen',
+        url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80'
+      },
+      {
+        label: 'Treino / Corrida',
+        url: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=900&q=80'
+      }
+    ];
+
+    /**************************************************************
+     * 3. CONTAS FICTÍCIAS CONSISTENTES (MOCK DATA EXECUTIVO)
+     **************************************************************/
+    const ACCOUNTS = {
+      clara: {
+        id: 'clara',
+        name: 'Clara Vasconcelos',
+        handle: '@claravibes',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        bio: 'Product Designer & entusiasta de cafés especiais ☕ | Documentando o equilíbrio real entre sprints intensas e pausas conscientes.',
+        currentMood: 'radiante',
+        streak: '19d 🔥',
+        vibes: 412
+      },
+      lucas: {
+        id: 'lucas',
+        name: 'Lucas Mendonça',
+        handle: '@devlucas',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+        bio: 'Engenheiro de Software Full-Stack 💻 | Sobrevivendo a deploys na sexta-feira, bugs misteriosos e maratonas noturnas de código.',
+        currentMood: 'exausto',
+        streak: '8d 🔥',
+        vibes: 289
+      },
+      helena: {
+        id: 'helena',
+        name: 'Helena Miyazaki',
+        handle: '@helenam',
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
+        bio: 'Arquiteta urbanista, corredora amadora e mãe de plantas 🌱 | Buscando beleza silenciosa no meio do trânsito de São Paulo.',
+        currentMood: 'calmo',
+        streak: '27d 🔥',
+        vibes: 530
+      },
+      rafael: {
+        id: 'rafael',
+        name: 'Rafael Albuquerque',
+        handle: '@rafacriativo',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+        bio: 'Diretor de Arte & Fotógrafo Analógico 🎞️ | A mente funciona em 47 abas abertas simultaneamente.',
+        currentMood: 'caotico',
+        streak: '12d 🔥',
+        vibes: 198
+      }
+    };
+
+    /**************************************************************
+     * 4. FEED INICIAL DE LAPS (HUMORES CONTRASTANTES)
+     **************************************************************/
+    let LAPS = [
+      {
+        id: 'lap-101',
+        authorId: 'clara',
+        mood: 'radiante',
+        image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1000&q=80',
+        caption: 'Protótipo aprovado de primeira pelo cliente e sol batendo na janela do estúdio! Às vezes tudo simplesmente se alinha. Fechei o notebook mais cedo para comemorar com um filtrado V60. ✨☕',
+        timestamp: 'Há 24 minutos',
+        likes: 42,
+        dislikes: 1,
+        userReaction: null, // 'like' | 'dislike' | null
+        showComments: false,
+        reported: false,
+        comments: [
+          {
+            authorId: 'helena',
+            text: 'Sensação imbatível! Aproveita muito esse descanso merecido, Clara!',
+            time: 'Há 15 min'
+          },
+          {
+            authorId: 'lucas',
+            text: 'Me empresta um pouco dessa sorte para o meu deploy de hoje à noite 😂👏',
+            time: 'Há 8 min'
+          }
+        ]
+      },
+      {
+        id: 'lap-102',
+        authorId: 'lucas',
+        mood: 'caotico',
+        image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1000&q=80',
+        caption: 'Três monitores ligados, 4 xícaras de café vazias e um bug em produção que só acontece quando a lua está cheia. O dia começou planejado, mas virou gerenciamento de crise total. Mandem energias! 🌪️💻',
+        timestamp: 'Há 1 hora',
+        likes: 67,
+        dislikes: 8,
+        userReaction: null,
+        showComments: false,
+        reported: false,
+        comments: [
+          {
+            authorId: 'rafael',
+            text: 'Força guerreiro! Respira 5 minutos longe da tela que a solução aparece.',
+            time: 'Há 42 min'
+          }
+        ]
+      },
+      {
+        id: 'lap-103',
+        authorId: 'helena',
+        mood: 'calmo',
+        image: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1000&q=80',
+        caption: 'Desliguei as notificações por 40 minutos para replantar minhas samambaias na varanda. O cheiro de terra molhada tem o poder imediato de desacelerar meus batimentos cardíacos. 🌿🪴',
+        timestamp: 'Há 3 horas',
+        likes: 89,
+        dislikes: 0,
+        userReaction: null,
+        showComments: false,
+        reported: false,
+        comments: [
+          {
+            authorId: 'clara',
+            text: 'Que paz transmitida em uma foto! Preciso fazer um cantinho verde aqui em casa.',
+            time: 'Há 2 horas'
+          }
+        ]
+      },
+      {
+        id: 'lap-104',
+        authorId: 'rafael',
+        mood: 'exausto',
+        image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80',
+        caption: 'Fim de set após 11 horas seguidas de gravação externa. Criatividade drenada no zero, pés doendo e só pensando no silêncio do meu quarto. Amanhã a inspiração volta, hoje é modo avião. 🌧️🔋',
+        timestamp: 'Há 5 horas',
+        likes: 54,
+        dislikes: 3,
+        userReaction: null,
+        showComments: false,
+        reported: false,
+        comments: []
+      },
+      {
+        id: 'lap-105',
+        authorId: 'lucas',
+        mood: 'focado',
+        image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1000&q=80',
+        caption: 'Update: Bug resolvido! Era apenas uma variável de ambiente faltando no cluster secundário. Fones com cancelamento de ruído + playlist synthwave salvaram a entrega. 🚀🎧',
+        timestamp: 'Há 6 horas',
+        likes: 73,
+        dislikes: 2,
+        userReaction: null,
+        showComments: false,
+        reported: false,
+        comments: []
+      }
+    ];
+
+    /**************************************************************
+     * 5. ESTADO DA APLICAÇÃO
+     **************************************************************/
+    let state = {
+      currentUserId: 'clara',
+      activeMoodFilter: 'all',
+      composerMood: 'radiante',
+      composerImage: PRESET_IMAGES[0].url
+    };
+
+    /**************************************************************
+     * 6. FUNÇÕES DE RENDERIZAÇÃO
+     **************************************************************/
+    function initApp() {
+      renderHeaderAndProfile();
+      renderMoodFilters();
+      renderComposerMoods();
+      renderPresetImages();
+      renderSidebarAccounts();
+      renderMoodPulse();
+      renderFeed();
+      lucide.createIcons();
+    }
+
+    // Atualiza Header + Card de Perfil Lateral
+    function renderHeaderAndProfile() {
+      const user = ACCOUNTS[state.currentUserId];
+      const moodObj = MOODS[user.currentMood];
+
+      // Header
+      document.getElementById('header-user-avatar').src = user.avatar;
+      document.getElementById('header-user-name').textContent = user.name.split(' ')[0];
+
+      // Profile Card
+      document.getElementById('profile-avatar').src = user.avatar;
+      document.getElementById('profile-name').textContent = user.name;
+      document.getElementById('profile-handle').textContent = user.handle;
+      document.getElementById('profile-bio').textContent = user.bio;
+      document.getElementById('profile-streak').textContent = user.streak;
+      document.getElementById('profile-vibes').textContent = user.vibes;
+
+      const userLapsCount = LAPS.filter(l => l.authorId === user.id).length;
+      document.getElementById('profile-laps-count').textContent = userLapsCount;
+
+      const badge = document.getElementById('profile-mood-badge');
+      badge.className = `absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full text-xs font-bold shadow-md border flex items-center gap-1 bg-navy-900 ${moodObj.badgeClass}`;
+      badge.innerHTML = `<span>${moodObj.emoji}</span> <span>${moodObj.label}</span>`;
+
+      // Composer Avatar
+      document.getElementById('composer-avatar').src = user.avatar;
+
+      // Render Quick Mood Selector Buttons
+      const selectorContainer = document.getElementById('user-mood-selector');
+      selectorContainer.innerHTML = Object.values(MOODS).map(m => {
+        const isSelected = user.currentMood === m.id;
+        return `
+          <button
+            onclick="changeUserCurrentMood('${m.id}')"
+            class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition text-left ${
+              isSelected
+                ? `${m.badgeClass} ring-2 ring-brand-500/40 scale-[1.02]`
+                : 'bg-navy-900/60 border-white/5 text-slate-300 hover:bg-navy-800 hover:border-white/15'
+            }"
+          >
+            <span class="text-sm">${m.emoji}</span>
+            <span class="truncate">${m.label}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Account Switcher Dropdown
+      const dropdownList = document.getElementById('account-switcher-list');
+      dropdownList.innerHTML = Object.values(ACCOUNTS).map(acc => {
+        const accMood = MOODS[acc.currentMood];
+        const isCurrent = acc.id === state.currentUserId;
+        return `
+          <button
+            onclick="switchAccount('${acc.id}')"
+            class="w-full px-3 py-2.5 flex items-center justify-between hover:bg-white/5 transition text-left ${isCurrent ? 'bg-brand-500/10' : ''}"
+          >
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img src="${acc.avatar}" class="w-8 h-8 rounded-full object-cover" />
+              <div class="truncate">
+                <p class="text-xs font-bold text-white truncate">${acc.name}</p>
+                <p class="text-[11px] text-slate-400">${accMood.emoji} ${accMood.label}</p>
+              </div>
+            </div>
+            ${isCurrent ? '<span class="text-[10px] font-bold text-brand-400 bg-brand-500/20 px-2 py-0.5 rounded-full">Ativo</span>' : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    // Renderiza Filtros de Humor no Topo e Mobile
+    function renderMoodFilters() {
+      const filters = [
+        { id: 'all', label: 'Todos', emoji: '🔮' },
+        ...Object.values(MOODS)
+      ];
+
+      const html = filters.map(f => {
+        const active = state.activeMoodFilter === f.id;
+        return `
+          <button
+            onclick="setMoodFilter('${f.id}')"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
+              active
+                ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
+                : 'text-slate-300 hover:text-white hover:bg-white/5'
+            }"
+          >
+            <span>${f.emoji}</span>
+            <span>${f.label}</span>
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('desktop-mood-filters').innerHTML = html;
+      document.getElementById('mobile-mood-filters').innerHTML = html;
+
+      const activeLabel = state.activeMoodFilter === 'all'
+        ? 'Todos os humores'
+        : `${MOODS[state.activeMoodFilter].emoji} ${MOODS[state.activeMoodFilter].label}`;
+      document.getElementById('active-filter-label').textContent = activeLabel;
+    }
+
+    // Renderiza seletores de humor dentro do formulário de novo LAP
+    function renderComposerMoods() {
+      const container = document.getElementById('composer-mood-options');
+      container.innerHTML = Object.values(MOODS).map(m => {
+        const selected = state.composerMood === m.id;
+        return `
+          <button
+            type="button"
+            onclick="selectComposerMood('${m.id}')"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 ${
+              selected
+                ? `${m.badgeClass} ring-2 ring-brand-500/40`
+                : 'bg-navy-900/80 border-white/10 text-slate-300 hover:border-white/25'
+            }"
+          >
+            <span>${m.emoji}</span>
+            <span>${m.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // Renderiza miniaturas de fotos predefinidas para simulação de upload
+    function renderPresetImages() {
+      const grid = document.getElementById('preset-images-grid');
+      grid.innerHTML = PRESET_IMAGES.map((img, idx) => {
+        const isSelected = state.composerImage === img.url;
+        return `
+          <button
+            type="button"
+            onclick="selectPresetImage('${img.url}')"
+            class="group relative h-14 rounded-xl overflow-hidden border-2 transition ${
+              isSelected ? 'border-brand-400 ring-2 ring-brand-500/40 scale-[1.03]' : 'border-transparent opacity-70 hover:opacity-100'
+            }"
+            title="${img.label}"
+          >
+            <img src="${img.url}" alt="${img.label}" class="w-full h-full object-cover" />
+            <span class="absolute inset-x-0 bottom-0 bg-navy-950/80 text-[9px] text-slate-200 truncate px-1 py-0.5">${img.label}</span>
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('composer-image-preview').src = state.composerImage;
+    }
+
+    // Renderiza a barra de pulso emocional da comunidade
+    function renderMoodPulse() {
+      const total = LAPS.length || 1;
+      const counts = {};
+      Object.keys(MOODS).forEach(k => counts[k] = 0);
+      LAPS.forEach(lap => {
+        if (counts[lap.mood] !== undefined) counts[lap.mood]++;
+      });
+
+      const container = document.getElementById('mood-pulse-bars');
+      container.innerHTML = Object.values(MOODS).map(m => {
+        const count = counts[m.id];
+        const pct = Math.round((count / total) * 100);
+        return `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-200 font-medium">${m.emoji} ${m.label}</span>
+              <span class="text-slate-400 font-semibold">${count} LAP${count === 1 ? '' : 's'} (${pct}%)</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-navy-900 overflow-hidden">
+              <div class="${m.barColor} h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Renderiza lista de contas na sidebar direita
+    function renderSidebarAccounts() {
+      const container = document.getElementById('sidebar-accounts-list');
+      container.innerHTML = Object.values(ACCOUNTS).map(acc => {
+        const mood = MOODS[acc.currentMood];
+        const active = acc.id === state.currentUserId;
+        return `
+          <div
+            onclick="switchAccount('${acc.id}')"
+            class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
+              active
+                ? 'bg-brand-500/15 border-brand-500/40'
+                : 'bg-navy-900/60 border-white/5 hover:border-white/15'
+            }"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="${acc.avatar}" alt="${acc.name}" class="w-10 h-10 rounded-xl object-cover" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-white truncate">${acc.name}</p>
+                <p class="text-[11px] text-brand-400 truncate">${acc.handle}</p>
+                <span class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full border ${mood.badgeClass}">
+                  ${mood.emoji} ${mood.label}
+                </span>
+              </div>
+            </div>
+            <i data-lucide="${active ? 'check-circle-2' : 'arrow-right-circle'}" class="w-4 h-4 ${active ? 'text-brand-400' : 'text-slate-500'} shrink-0"></i>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Renderiza o Feed de LAPs
+    function renderFeed() {
+      const feedContainer = document.getElementById('laps-feed');
+      const filteredLaps = state.activeMoodFilter === 'all'
+        ? LAPS
+        : LAPS.filter(lap => lap.mood === state.activeMoodFilter);
+
+      document.getElementById('feed-counter-badge').textContent = `${filteredLaps.length} ${filteredLaps.length === 1 ? 'post' : 'posts'}`;
+
+      if (filteredLaps.length === 0) {
+        feedContainer.innerHTML = `
+          <div class="glass-panel rounded-3xl p-10 text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center mx-auto text-2xl">
+              🌌
+            </div>
+            <h3 class="text-base font-bold text-white">Nenhum LAP com este humor ainda</h3>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto">Seja o primeiro a registrar um micro-momento com essa vibe ou limpe o filtro acima.</p>
+            <button onclick="setMoodFilter('all')" class="mt-2 px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white">
+              Mostrar todos os LAPs
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      feedContainer.innerHTML = filteredLaps.map(lap => {
+        const author = ACCOUNTS[lap.authorId];
+        const mood = MOODS[lap.mood];
+        const isLiked = lap.userReaction === 'like';
+        const isDisliked = lap.userReaction === 'dislike';
+
+        return `
+          <article id="card-${lap.id}" class="glass-panel rounded-3xl overflow-hidden shadow-xl transition hover:border-brand-500/30 ${lap.reported ? 'opacity-60 ring-1 ring-rose-500/40' : ''}">
+            
+            <!-- Card Header -->
+            <div class="p-4 sm:p-5 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <img
+                  src="${author.avatar}"
+                  alt="${author.name}"
+                  onclick="switchAccount('${author.id}')"
+                  title="Clique para assumir o perfil de ${author.name}"
+                  class="w-11 h-11 rounded-2xl object-cover ring-2 ring-white/10 cursor-pointer hover:ring-brand-400 transition"
+                />
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-white truncate">${author.name}</h3>
+                    <span class="text-xs text-brand-400 font-medium hidden sm:inline">${author.handle}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                    <span>${lap.timestamp}</span>
+                    <span>•</span>
+                    <span>LAP verificado</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Mood Tag of the Post -->
+              <span class="px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shrink-0 ${mood.badgeClass}">
+                <span>${mood.emoji}</span>
+                <span>${mood.label}</span>
+              </span>
+            </div>
+
+            <!-- Card Image -->
+            <div class="relative bg-navy-950 max-h-[430px] overflow-hidden border-y border-white/5">
+              <img src="${lap.image}" alt="Imagem do LAP" class="w-full h-72 sm:h-96 object-cover hover:scale-[1.01] transition duration-500" loading="lazy" />
+              ${lap.reported ? `
+                <div class="absolute top-3 right-3 bg-rose-950/90 border border-rose-500/40 text-rose-200 text-[11px] font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-md">
+                  <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
+                  Sinalizado para revisão
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Card Body & Caption -->
+            <div class="p-4 sm:p-5 space-y-4">
+              <p class="text-sm text-slate-200 leading-relaxed">${escapeHTML(lap.caption)}</p>
+
+              <!-- Interactive Action Bar -->
+              <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <!-- Like Button -->
+                  <button
+                    onclick="handleReaction('${lap.id}', 'like')"
+                    id="like-btn-${lap.id}"
+                    class="px-3.5 py-2 rounded-2xl text-xs font-bold border transition flex items-center gap-1.5 ${
+                      isLiked
+                        ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-600/20'
+                        : 'bg-navy-900/80 border-white/10 text-slate-300 hover:bg-navy-800 hover:text-white'
+                    }"
+                    title="Apoiar este momento"
+                  >
+                    <i data-lucide="thumbs-up" class="w-4 h-4 ${isLiked ? 'text-brand-400 fill-brand-400/30' : ''}"></i>
+                    <span>${lap.likes}</span>
+                  </button>
+
+                  <!-- Dislike Button -->
+                  <button
+                    onclick="handleReaction('${lap.id}', 'dislike')"
+                    id="dislike-btn-${lap.id}"
+                    class="px-3.5 py-2 rounded-2xl text-xs font-bold border transition flex items-center gap-1.5 ${
+                      isDisliked
+                        ? 'bg-indigo-600/30 border-indigo-400 text-white'
+                        : 'bg-navy-900/80 border-white/10 text-slate-300 hover:bg-navy-800 hover:text-white'
+                    }"
+                    title="Não me conectei / Dislike"
+                  >
+                    <i data-lucide="thumbs-down" class="w-4 h-4 ${isDisliked ? 'text-indigo-400 fill-indigo-400/30' : ''}"></i>
+                    <span>${lap.dislikes}</span>
+                  </button>
+
+                  <!-- Comments Toggle Button -->
+                  <button
+                    onclick="toggleComments('${lap.id}')"
+                    class="px-3.5 py-2 rounded-2xl text-xs font-bold border transition flex items-center gap-1.5 ${
+                      lap.showComments
+                        ? 'bg-white/15 border-white/30 text-white'
+                        : 'bg-navy-900/80 border-white/10 text-slate-300 hover:bg-navy-800 hover:text-white'
+                    }"
+                  >
+                    <i data-lucide="message-circle" class="w-4 h-4 text-brand-400"></i>
+                    <span>${lap.comments.length}</span>
+                    <span class="hidden sm:inline">Comentários</span>
+                  </button>
+                </div>
+
+                <!-- Report Content Button -->
+                <button
+                  onclick="openReportModal('${lap.id}')"
+                  class="px-3 py-2 rounded-2xl text-xs font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition flex items-center gap-1.5"
+                  title="Reportar conteúdo"
+                >
+                  <i data-lucide="flag" class="w-4 h-4"></i>
+                  <span class="hidden sm:inline">Reportar</span>
+                </button>
+              </div>
+
+              <!-- Collapsible Comments Section -->
+              ${lap.showComments ? `
+                <div class="pt-4 border-t border-white/10 space-y-3 animate-pop">
+                  <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                    ${lap.comments.length === 0 ? `
+                      <p class="text-xs text-slate-400 italic py-2">Nenhum comentário ainda. Deixe uma mensagem empática!</p>
+                    ` : lap.comments.map(c => {
+                      const cAuthor = ACCOUNTS[c.authorId] || ACCOUNTS.clara;
+                      return `
+                        <div class="bg-navy-900/80 p-3 rounded-2xl border border-white/5 flex gap-2.5">
+                          <img src="${cAuthor.avatar}" class="w-7 h-7 rounded-xl object-cover mt-0.5 shrink-0" />
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                              <span class="text-xs font-bold text-white">${cAuthor.name}</span>
+                              <span class="text-[10px] text-slate-400">${c.time}</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1">${escapeHTML(c.text)}</p>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+
+                  <!-- Add Comment Input -->
+                  <form onsubmit="handleAddComment(event, '${lap.id}')" class="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      id="comment-input-${lap.id}"
+                      required
+                      placeholder="Escreva um comentário como ${ACCOUNTS[state.currentUserId].name.split(' ')[0]}..."
+                      class="flex-1 bg-navy-900 text-xs text-white placeholder-slate-400 px-3.5 py-2.5 rounded-xl border border-white/10 focus:border-brand-500 focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition shrink-0"
+                    >
+                      Enviar
+                    </button>
+                  </form>
+                </div>
+              ` : ''}
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    /**************************************************************
+     * 7. AÇÕES E INTERATIVIDADE
+     **************************************************************/
+
+    // Alternar conta ativa para testes na demo
+    function switchAccount(accountId) {
+      if (!ACCOUNTS[accountId]) return;
+      state.currentUserId = accountId;
+      document.getElementById('account-dropdown').classList.add('hidden');
+      renderHeaderAndProfile();
+      renderSidebarAccounts();
+      renderFeed();
+      showToast(`Perfil alternado para ${ACCOUNTS[accountId].name}`, 'info');
+      lucide.createIcons();
+    }
+
+    function toggleAccountDropdown() {
+      const el = document.getElementById('account-dropdown');
+      el.classList.toggle('hidden');
+    }
+
+    // Alterar humor atual do usuário logado
+    function changeUserCurrentMood(moodId) {
+      ACCOUNTS[state.currentUserId].currentMood = moodId;
+      state.composerMood = moodId; // Sincroniza o composer com o humor atual
+      renderHeaderAndProfile();
+      renderComposerMoods();
+      renderSidebarAccounts();
+      const mood = MOODS[moodId];
+      showToast(`Seu status agora é: ${mood.emoji} ${mood.label}`, 'mood');
+      lucide.createIcons();
+    }
+
+    // Filtrar feed por humor
+    function setMoodFilter(moodId) {
+      state.activeMoodFilter = moodId;
+      renderMoodFilters();
+      renderFeed();
+    }
+
+    // Selecionar humor para o novo post
+    function selectComposerMood(moodId) {
+      state.composerMood = moodId;
+      renderComposerMoods();
+    }
+
+    // Selecionar foto predefinida no composer
+    function selectPresetImage(url) {
+      state.composerImage = url;
+      renderPresetImages();
+    }
+
+    // Upload simulado de arquivo de imagem local via FileReader
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        state.composerImage = e.target.result;
+        renderPresetImages();
+        showToast('Imagem local carregada no preview!', 'info');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Criar e publicar novo LAP
+    function handleCreateLap(event) {
+      event.preventDefault();
+      const captionInput = document.getElementById('lap-caption');
+      const caption = captionInput.value.trim();
+      if (!caption) return;
+
+      const newLap = {
+        id: 'lap-' + Date.now(),
+        authorId: state.currentUserId,
+        mood: state.composerMood,
+        image: state.composerImage,
+        caption: caption,
+        timestamp: 'Agora mesmo',
+        likes: 1,
+        dislikes: 0,
+        userReaction: 'like',
+        showComments: false,
+        reported: false,
+        comments: []
+      };
+
+      // Atualiza humor atual do autor para refletir seu último LAP
+      ACCOUNTS[state.currentUserId].currentMood = state.composerMood;
+      ACCOUNTS[state.currentUserId].vibes += 5;
+
+      LAPS.unshift(newLap);
+      captionInput.value = '';
+      state.activeMoodFilter = 'all';
+
+      renderHeaderAndProfile();
+      renderMoodFilters();
+      renderMoodPulse();
+      renderSidebarAccounts();
+      renderFeed();
+
+      showToast('Seu LAP foi publicado no feed! ✨', 'success');
+    }
+
+    // Incrementar/Decrementar contadores de Likes e Dislikes
+    function handleReaction(lapId, type) {
+      const lap = LAPS.find(l => l.id === lapId);
+      if (!lap) return;
+
+      if (lap.userReaction === type) {
+        // Desfazer reação ativa
+        lap[type + 's'] = Math.max(0, lap[type + 's'] - 1);
+        lap.userReaction = null;
+      } else {
+        // Se tinha reação oposta, decrementa a anterior
+        if (lap.userReaction === 'like') lap.likes = Math.max(0, lap.likes - 1);
+        if (lap.userReaction === 'dislike') lap.dislikes = Math.max(0, lap.dislikes - 1);
+
+        // Incrementa a nova reação
+        lap[type + 's'] += 1;
+        lap.userReaction = type;
+      }
+
+      renderFeed();
+      const btn = document.getElementById(`${type}-btn-${lapId}`);
+      if (btn) btn.classList.add('animate-pop');
+    }
+
+    // Abrir/fechar seção de comentários
+    function toggleComments(lapId) {
+      const lap = LAPS.find(l => l.id === lapId);
+      if (!lap) return;
+      lap.showComments = !lap.showComments;
+      renderFeed();
+      if (lap.showComments) {
+        setTimeout(() => {
+          const input = document.getElementById(`comment-input-${lapId}`);
+          if (input) input.focus();
+        }, 50);
+      }
+    }
+
+    // Adicionar novo comentário ao LAP
+    function handleAddComment(event, lapId) {
+      event.preventDefault();
+      const input = document.getElementById(`comment-input-${lapId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      const lap = LAPS.find(l => l.id === lapId);
+      if (!lap) return;
+
+      lap.comments.push({
+        authorId: state.currentUserId,
+        text: text,
+        time: 'Agora'
+      });
+
+      renderFeed();
+      showToast('Comentário adicionado ao LAP!', 'info');
+    }
+
+    // Modal de Denúncia ("Reportar conteúdo")
+    function openReportModal(lapId) {
+      document.getElementById('report-lap-id').value = lapId;
+      document.getElementById('report-form').reset();
+      const modal = document.getElementById('report-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeReportModal() {
+      const modal = document.getElementById('report-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function submitReport(event) {
+      event.preventDefault();
+      const lapId = document.getElementById('report-lap-id').value;
+      const reasonInput = document.querySelector('input[name="report_reason"]:checked');
+      const reason = reasonInput ? reasonInput.value : 'Diretrizes da comunidade';
+
+      const lap = LAPS.find(l => l.id === lapId);
+      if (lap) {
+        lap.reported = true;
+      }
+
+      closeReportModal();
+      renderFeed();
+      showToast(`Denúncia recebida ("${reason}"). Nossa equipe revisará este LAP.`, 'report');
+    }
+
+    // Sistema de Toasts (Feedback Visual Amigável)
+    function showToast(message, variant = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const styles = {
+        success: 'border-emerald-500/40 bg-navy-900/95 text-emerald-200',
+        report: 'border-rose-500/40 bg-navy-900/95 text-rose-200',
+        mood: 'border-brand-500/40 bg-navy-900/95 text-purple-200',
+        info: 'border-white/15 bg-navy-900/95 text-slate-200'
+      };
+
+      const icons = {
+        success: 'check-circle-2',
+        report: 'shield-check',
+        mood: 'sparkles',
+        info: 'bell'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-3 p-4 rounded-2xl border shadow-2xl backdrop-blur-xl animate-pop ${styles[variant] || styles.info}`;
+      toast.innerHTML = `
+        <i data-lucide="${icons[variant] || 'bell'}" class="w-5 h-5 shrink-0 text-brand-400"></i>
+        <p class="text-xs font-semibold leading-snug flex-1">${message}</p>
+      `;
+
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3600);
+    }
+
+    // Utilitário contra XSS
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag]));
+    }
+
+    // Fechar dropdown ao clicar fora
+    window.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('account-dropdown');
+      if (!e.target.closest('#account-dropdown') && !e.target.closest('button[onclick="toggleAccountDropdown()"]')) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    // Inicializar aplicação
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
